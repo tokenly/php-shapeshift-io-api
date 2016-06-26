@@ -4,12 +4,17 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Achse/php-shapeshift-io-api/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Achse/php-shapeshift-io-api/?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Achse/php-shapeshift-io-api/badge.svg?branch=master)](https://coveralls.io/github/Achse/php-shapeshift-io-api?branch=master)
 
+# Work in progress!
+Hope be done soon :)
+
 # Installation
 ```
 composer require achse/php-shapeshift-io-api
 ```
 
 # Usage
+See https://info.shapeshift.io/api for more info about API calls and theirs parameters.
+
 ```php
 $client = new Client();
 
