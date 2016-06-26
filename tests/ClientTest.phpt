@@ -8,6 +8,7 @@ use Achse\ShapeShiftIo\Client;
 use Achse\ShapeShiftIo\Coins;
 use Achse\ShapeShiftIo\Test\MyAssert;
 use Nette\SmartObject;
+use Tester\Assert;
 use Tester\TestCase;
 
 class ClientTest extends TestCase
@@ -35,10 +36,17 @@ class ClientTest extends TestCase
         MyAssert::positiveFloat($limit);
     }
 
-    public function testMarket()
+    public function testMarketAll()
     {
         $marketInfo = (new Client())->getMarketInfo();
+        Assert::true(count($marketInfo) > 0, 'There should be some data');
         
+        $pair = sprintf('%s_%s', Coins::BITCOIN, Coins::ETHEREUM);
+        Assert::equal($pair, $marketInfo[$pair]->pair);
+        MyAssert::positiveFloat($marketInfo[$pair]->rate);
+        MyAssert::positiveFloat($marketInfo[$pair]->limit);
+        MyAssert::positiveFloat($marketInfo[$pair]->min);
+        MyAssert::positiveFloat($marketInfo[$pair]->minerFee);
     }
 
 }

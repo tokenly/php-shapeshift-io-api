@@ -6,8 +6,8 @@ namespace Achse\ShapeShiftIo;
 interface Coins
 {
 
-    const BITCOIN = 'btc';
-    const LITECOIN = 'ltc';
-    const ETHEREUM = 'eth';
+    const BITCOIN = 'BTC';
+    const LITECOIN = 'LTC';
+    const ETHEREUM = 'ETH';
     
 }

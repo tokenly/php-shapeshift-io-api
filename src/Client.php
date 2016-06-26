@@ -68,7 +68,7 @@ class Client
     {
         $result = $this->get(sprintf('%s/%s', Resources::MARKET_INFO, $this->getPair($coin1, $coin2)));
 
-        return MarketInfo::fromArray($result);
+        return new MarketInfo($result);
     }
 
     /**
