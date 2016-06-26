@@ -1,0 +1,32 @@
+{
+    "name": "achse/php-shapeshift-io-api",
+    "description": "API library for PHP for shapeshift.io service.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "altcoin",
+        "bitcoin",
+        "ethereum",
+        "shapeshift.io"
+    ],
+    "authors": [
+        {
+            "name": "Petr Hejna",
+            "homepage": "http://petrhejna.org"
+        }
+    ],
+    "require": {
+        "php": ">= 7.0",
+        "guzzlehttp/guzzle": "^6.2",
+        "nette/utils": "2.4.*"
+    },
+    "require-dev": {
+        "nette/tester": "@dev",
+        "mockery/mockery": "@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "Achse\\ShapeShiftIo\\": "src/"
+        }
+    }
+}
