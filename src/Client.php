@@ -5,6 +5,7 @@ namespace Achse\ShapeShiftIo;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use LogicException;
+use Nette\NotImplementedException;
 use Nette\SmartObject;
 use Nette\Utils\Json;
 use stdClass;
@@ -36,6 +37,8 @@ class Client
     }
 
     /**
+     * @see https://info.shapeshift.io/api#api-2
+     *
      * @param string $coin1
      * @param string $coin2
      * @return float
@@ -48,6 +51,8 @@ class Client
     }
 
     /**
+     * @see https://info.shapeshift.io/api#api-3
+     *
      * @param string $coin1
      * @param string $coin2
      * @return float
@@ -60,6 +65,8 @@ class Client
     }
 
     /**
+     * @see https://info.shapeshift.io/api#api-103
+     *
      * @param string|null $coin1
      * @param string|null $coin2
      * @return MarketInfo
@@ -71,6 +78,65 @@ class Client
         return new MarketInfo($result);
     }
 
+    /**
+     * @see https://info.shapeshift.io/api#api-4
+     *
+     * @param int $max
+     * @return SomeSmallerWtfTransaction[] // Todo: solve this no ide what this enpoint means
+     * @throws RequestFailedException
+     * @throws ApiErrorException
+     */
+    public function getRecentTransactionList(int $max) : array
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see https://info.shapeshift.io/api#api-5
+     *
+     * @param string $address
+     * @return TransactionStatus
+     * @throws RequestFailedException
+     * @throws ApiErrorException
+     */
+    public function getStatusOfDepositToAddress(string $address) : TransactionStatus
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see https://info.shapeshift.io/api#api-6
+     *
+     * @param string $address
+     * @return int
+     * @throws RequestFailedException
+     * @throws ApiErrorException
+     */
+    public function getTimeRemaining(string $address) : int
+    {
+        return (int)$this->get(sprintf('%s/%s', Resources::TIME_REMAINING, $address))->seconds_remaining;
+    }
+
+    /**
+     * @see https://info.shapeshift.io/api#api-104
+     *
+     * @return stdClass[]
+     */
+    public function getListOfSupportedCoins() : array
+    {
+        return $this->get(Resources::LIST_OF_SUPPORTED_COINS);
+    }
+
+    /**
+     * @see https://info.shapeshift.io/api#api-105
+     * 
+     * @return Transaction[]
+     */
+    public function getListAOfTransactionsByApiKey(string $apiKey) : array
+    {
+        throw new NotImplementedException();
+    }
+    
     /**
      * @param string $url
      * @param array $options
