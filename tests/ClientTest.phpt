@@ -53,10 +53,51 @@ class ClientTest extends TestCase
 
     public function testTimeRemaining()
     {
-        $timeRemaining = (new Client())->getTimeRemaining(self::DUMMY_ADDRESS);
-        Assert::equal(0, $timeRemaining);
-        
+//        $timeRemaining = (new Client())->getTimeRemaining(self::DUMMY_ADDRESS);
+//        Assert::equal(0, $timeRemaining);
+
         // Todo: create transaction in test and try that TimeRemaining > 0  
+    }
+
+    public function testSupportedCoins()
+    {
+        $supportedCoins = (new Client())->getSupportedCoins();
+
+        Assert::equal('Bitcoin', $supportedCoins->{Coins::BITCOIN}->name);
+        Assert::equal(Coins::ETHEREUM, $supportedCoins->{Coins::ETHEREUM}->symbol);
+    }
+
+    /**
+     * @dataProvider getDataForValidateAddress
+     *
+     * @param bool $expectedValid
+     * @param string $expectedErrorMessage
+     * @param string $address
+     * @param string $coin
+     */
+    public function testValidateAddress(
+        bool $expectedValid,
+        string $expectedErrorMessage,
+        string $address,
+        string $coin
+    ) {
+        $result = (new Client())->validateAddress($address, $coin);
+        Assert::equal($expectedValid, $result->isValid);
+        if (!$expectedValid) {
+            Assert::equal($expectedErrorMessage, $result->error);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getDataForValidateAddress()
+    {
+        return [
+            [false, 'Invalid address.', self::DUMMY_ADDRESS, Coins::LITECOIN],
+            [true, '', '0x123f681646d4a755815f9cb19e1acc8565a0c2ac', Coins::ETHEREUM],
+            [true, '', '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ', Coins::BITCOIN],
+        ];
     }
 
 }

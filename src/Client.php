@@ -8,6 +8,7 @@ use LogicException;
 use Nette\NotImplementedException;
 use Nette\SmartObject;
 use Nette\Utils\Json;
+use Nette\Utils\Strings;
 use stdClass;
 
 class Client
@@ -120,23 +121,53 @@ class Client
     /**
      * @see https://info.shapeshift.io/api#api-104
      *
-     * @return stdClass[]
+     * @return stdClass
      */
-    public function getListOfSupportedCoins() : array
+    public function getSupportedCoins() : stdClass
     {
         return $this->get(Resources::LIST_OF_SUPPORTED_COINS);
     }
 
     /**
      * @see https://info.shapeshift.io/api#api-105
-     * 
+     *
      * @return Transaction[]
      */
     public function getListAOfTransactionsByApiKey(string $apiKey) : array
     {
         throw new NotImplementedException();
     }
-    
+
+    /**
+     * @see https://info.shapeshift.io/#api-106
+     *
+     * @param string $address
+     * @return Transaction[]
+     */
+    public function getTransactionsByOutputAddress(string $address) : array
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see https://info.shapeshift.io/#api-107
+     *
+     * @param string $address
+     * @param string $coin
+     * @return stdClass
+     */
+    public function validateAddress(string $address, string $coin) : stdClass
+    {
+        $result = $this->get(sprintf('%s/%s/%s', Resources::VALIDATE_ADDRESS, $address, $coin));
+
+        if (!isset($result->isValid) && isset($result->isvalid)) {
+            $result->isValid = $result->isvalid;
+            unset ($result->isvalid);
+        }
+
+        return $result;
+    }
+
     /**
      * @param string $url
      * @param array $options
@@ -157,23 +188,27 @@ class Client
         }
 
         $result = Json::decode($response->getBody()->getContents());
-        $this->checkErrors($result);
+        $this->checkErrors($result, $url);
 
         return $result;
     }
 
     /**
-     * @param stdClass|array $result
+     * @param array|stdClass $result
+     * @param string $url
      * @throws ApiErrorException
      */
-    private function checkErrors($result)
+    private function checkErrors($result, string $url)
     {
-        if ($result instanceof stdClass && isset($result->error)) {
-            if ($result->error === 'Unknown pair') {
+        $error = $this->findErrorInResult($result);
+
+        if ($error !== null && !$this->isEndpointOkWithError($url)) {
+
+            if ($error === 'Unknown pair') {
                 throw new UnknownPairException('Coin identifiers pair unknown.');
-            } else {
-                throw new ApiErrorException($result->error);
             }
+
+            throw new ApiErrorException($error);
         }
     }
 
@@ -189,6 +224,27 @@ class Client
         }
 
         return $coin1 !== null ? sprintf('%s_%s', $coin1, $coin2) : '';
+    }
+
+    /**
+     * ShapeShift API does NOT provide 400 status code on error and for some endpoints
+     * can be $result->error success response.
+     *
+     * @param string $url
+     * @return bool
+     */
+    private function isEndpointOkWithError(string $url) : bool
+    {
+        return Strings::startsWith($url, Resources::VALIDATE_ADDRESS);
+    }
+
+    /**
+     * @param stdClass|array $result
+     * @return string|stdClass|null
+     */
+    private function findErrorInResult($result)
+    {
+        return $result instanceof stdClass && isset($result->error) ? $result->error : null;
     }
 
 }
