@@ -8,6 +8,7 @@ use Achse\ShapeShiftIo\Client;
 use Achse\ShapeShiftIo\Coins;
 use Achse\ShapeShiftIo\Test\MyAssert;
 use Nette\SmartObject;
+use stdClass;
 use Tester\Assert;
 use Tester\TestCase;
 
@@ -44,11 +45,18 @@ class ClientTest extends TestCase
         Assert::true(count($marketInfo) > 0, 'There should be some data');
 
         $pair = sprintf('%s_%s', Coins::BITCOIN, Coins::ETHEREUM);
-        Assert::equal($pair, $marketInfo[$pair]->pair);
-        MyAssert::positiveFloat($marketInfo[$pair]->rate);
-        MyAssert::positiveFloat($marketInfo[$pair]->limit);
-        MyAssert::positiveFloat($marketInfo[$pair]->min);
-        MyAssert::positiveFloat($marketInfo[$pair]->minerFee);
+        $coinItems = array_filter(
+            $marketInfo,
+            function (stdClass $coinItem) use ($pair) : bool {
+                return $coinItem->pair === $pair;
+            }
+        );
+        $coinItem = reset($coinItems);
+        Assert::equal($pair, $coinItem->pair);
+        MyAssert::positiveFloat($coinItem->rate);
+        MyAssert::positiveFloat($coinItem->limit);
+        MyAssert::positiveFloat($coinItem->min);
+        MyAssert::positiveFloat($coinItem->minerFee);
     }
 
     public function testTimeRemaining()

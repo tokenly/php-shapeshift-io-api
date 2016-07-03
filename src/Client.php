@@ -71,20 +71,18 @@ class Client
      *
      * @param string|null $coin1
      * @param string|null $coin2
-     * @return MarketInfo
+     * @return stdClass[]
      */
-    public function getMarketInfo(string $coin1 = null, string $coin2 = null) : MarketInfo
+    public function getMarketInfo(string $coin1 = null, string $coin2 = null) : array
     {
-        $result = $this->get(sprintf('%s/%s', Resources::MARKET_INFO, $this->getPair($coin1, $coin2)));
-
-        return new MarketInfo($result);
+        return $this->get(sprintf('%s/%s', Resources::MARKET_INFO, $this->getPair($coin1, $coin2)));
     }
 
     /**
      * @see https://info.shapeshift.io/api#api-4
      *
      * @param int $max
-     * @return SomeSmallerWtfTransaction[] // Todo: solve this no ide what this enpoint means
+     * @return stdClass[]
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
@@ -97,11 +95,11 @@ class Client
      * @see https://info.shapeshift.io/api#api-5
      *
      * @param string $address
-     * @return TransactionStatus
+     * @return stdClass
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
-    public function getStatusOfDepositToAddress(string $address) : TransactionStatus
+    public function getStatusOfDepositToAddress(string $address) : stdClass
     {
         throw new NotImplementedException();
     }
@@ -132,7 +130,7 @@ class Client
     /**
      * @see https://info.shapeshift.io/api#api-105
      *
-     * @return Transaction[]
+     * @return stdClass[]
      */
     public function getListAOfTransactionsByApiKey(string $apiKey) : array
     {
@@ -143,7 +141,7 @@ class Client
      * @see https://info.shapeshift.io/#api-106
      *
      * @param string $address
-     * @return Transaction[]
+     * @return stdClass[]
      */
     public function getTransactionsByOutputAddress(string $address) : array
     {
