@@ -88,7 +88,7 @@ class Client
      */
     public function getRecentTransactionList(int $max) : array
     {
-        throw new NotImplementedException();
+        return $this->get(sprintf('%s/%s', Resources::RECENT_TRANSACTIONS, $max));
     }
 
     /**

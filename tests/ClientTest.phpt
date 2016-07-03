@@ -59,6 +59,18 @@ class ClientTest extends TestCase
         MyAssert::positiveFloat($coinItem->minerFee);
     }
 
+    public function testRecentTransactionList()
+    {
+        $transactions = (new Client())->getRecentTransactionList(100);
+        Assert::true(count($transactions) > 0, 'There should be some transactions.');
+        /** @var stdClass $firstTransaction */
+        $firstTransaction = reset($transactions);
+        Assert::true(isset($firstTransaction->curIn));
+        Assert::true(isset($firstTransaction->curOut));
+        Assert::true(isset($firstTransaction->timestamp));
+        Assert::true(isset($firstTransaction->amount));
+    }
+
     public function testTimeRemaining()
     {
 //        $timeRemaining = (new Client())->getTimeRemaining(self::DUMMY_ADDRESS);
