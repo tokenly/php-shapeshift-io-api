@@ -1,6 +1,6 @@
 <?php
 
-namespace Achse\ShapeShiftIo;
+namespace Achse\ShapeShiftIo\ApiError;
 
 use Exception;
 

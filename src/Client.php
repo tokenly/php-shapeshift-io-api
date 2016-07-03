@@ -2,6 +2,10 @@
 
 namespace Achse\ShapeShiftIo;
 
+use Achse\ShapeShiftIo\ApiError\ApiErrorException;
+use Achse\ShapeShiftIo\ApiError\NoPendingTransactionException;
+use Achse\ShapeShiftIo\ApiError\NotDepositAddressException;
+use Achse\ShapeShiftIo\ApiError\UnknownPairException;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
 use LogicException;
@@ -101,7 +105,7 @@ class Client
      */
     public function getStatusOfDepositToAddress(string $address) : stdClass
     {
-        throw new NotImplementedException();
+        return $this->get(sprintf('%s/%s', Resources::RECENT_DEPOSIT_TRANSACTION_STATUS, $address));
     }
 
     /**
@@ -130,22 +134,26 @@ class Client
     /**
      * @see https://info.shapeshift.io/api#api-105
      *
+     * @param string $apiKey
      * @return stdClass[]
      */
     public function getListAOfTransactionsByApiKey(string $apiKey) : array
     {
-        throw new NotImplementedException();
+        return $this->get(sprintf('%s/%s', Resources::LIST_OF_TRANSACTIONS_WITH_API_KEY, $apiKey));
     }
 
     /**
      * @see https://info.shapeshift.io/#api-106
      *
      * @param string $address
+     * @param string $apiKey
      * @return stdClass[]
      */
-    public function getTransactionsByOutputAddress(string $address) : array
+    public function getTransactionsByOutputAddress(string $address, string $apiKey) : array
     {
-        throw new NotImplementedException();
+        return $this->get(
+            sprintf('%s/%s/%s', Resources::LIST_OF_TRANSACTIONS_WITH_API_KEY_BY_ADDRESS, $address, $apiKey)
+        );
     }
 
     /**
@@ -325,13 +333,19 @@ class Client
     {
         $error = $this->findErrorInResult($result);
 
-        if ($error !== null && !$this->isEndpointOkWithError($url)) {
-
+        if ($error !== null) {
             if ($error === 'Unknown pair') {
                 throw new UnknownPairException('Coin identifiers pair unknown.');
-            }
 
-            throw new ApiErrorException($error);
+            } elseif ($error === 'This address is NOT a ShapeShift deposit address. Do not send anything to it.') {
+                throw new NotDepositAddressException($error);
+
+            } elseif ($error === 'Unable to find pending transaction') {
+                throw new NoPendingTransactionException($error);
+
+            } elseif (!$this->isEndpointOkWithError($url)) {
+                throw new ApiErrorException($error);
+            }
         }
     }
 

@@ -26,7 +26,7 @@ class ClientTest extends TestCase
     }
 
     /**
-     * @throws \Achse\ShapeShiftIo\UnknownPairException
+     * @throws \Achse\ShapeShiftIo\ApiError\UnknownPairException
      */
     public function testUnknownCoinPairException()
     {
@@ -71,20 +71,47 @@ class ClientTest extends TestCase
         Assert::true(isset($firstTransaction->amount));
     }
 
-    public function testTimeRemaining()
+    public function testStatusOfDepositToAddress()
     {
-//        $timeRemaining = (new Client())->getTimeRemaining(self::DUMMY_ADDRESS);
-//        Assert::equal(0, $timeRemaining);
-
-        // Todo: create transaction in test and try that TimeRemaining > 0  
+        $transactions = (new Client())->getStatusOfDepositToAddress('1H7HdTSLsHj31Pnixizhmcck49VJRNg5Pn');
+        Assert::equal('no_deposits', $transactions->status);
+        Assert::equal('1H7HdTSLsHj31Pnixizhmcck49VJRNg5Pn', $transactions->address);
     }
 
-    public function testSupportedCoins()
+    /**
+     * @throws \Achse\ShapeShiftIo\ApiError\NotDepositAddressException
+     */
+    public function testStatusOfDepositToAddressFailed()
+    {
+        (new Client())->getStatusOfDepositToAddress('tralala');
+    }
+
+    /**
+     * @throws \Achse\ShapeShiftIo\ApiError\NoPendingTransactionException
+     */
+    public function testTimeRemainingNoPendingTransaction()
+    {
+        (new Client())->getTimeRemaining('tralala');
+    }
+
+    public function testGetSupportedCoins()
     {
         $supportedCoins = (new Client())->getSupportedCoins();
 
         Assert::equal('Bitcoin', $supportedCoins->{Coins::BITCOIN}->name);
         Assert::equal(Coins::ETHEREUM, $supportedCoins->{Coins::ETHEREUM}->symbol);
+    }
+
+    public function testGetListAOfTransactionsByApiKey()
+    {
+        $result = (new Client())->getListAOfTransactionsByApiKey('YOLOOOOO');
+        Assert::equal([], $result);
+    }
+
+    public function testGetTransactionsByOutputAddress()
+    {
+        $result = (new Client())->getTransactionsByOutputAddress('tralala', 'YOLOOOOO');
+        Assert::equal([], $result);
     }
 
     /**
