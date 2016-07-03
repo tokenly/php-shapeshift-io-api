@@ -9,6 +9,7 @@ use Nette\NotImplementedException;
 use Nette\SmartObject;
 use Nette\Utils\Json;
 use Nette\Utils\Strings;
+use Psr\Http\Message\ResponseInterface;
 use stdClass;
 
 class Client
@@ -150,6 +151,119 @@ class Client
     }
 
     /**
+     * @see https://info.shapeshift.io/#api-7
+     *
+     * @param string $withdrawalAddress
+     * @param string $coin1
+     * @param string $coin2
+     * @param string|null $returnAddress
+     * @param string|null $destinationTag
+     * @param string|null $rsAddress
+     * @param string|null $apiKey
+     */
+    public function createTransaction(
+        string $withdrawalAddress,
+        string $coin1,
+        string $coin2,
+        string $returnAddress = null,
+        string $rsAddress = null,
+        string $destinationTag = null,
+        string $apiKey = null
+    ) {
+        $input = $this->buildSubmitTransactionBodyObject(
+            $withdrawalAddress,
+            $coin1,
+            $coin2,
+            $returnAddress,
+            $rsAddress,
+            $destinationTag,
+            $apiKey
+        );
+        Json::encode($input);
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see https://info.shapeshift.io/#api-8
+     *
+     * @param string $email
+     * @param string $transactionId
+     */
+    public function requestEmailReceipt(string $email, string $transactionId) : void
+    {
+        $input = new stdClass();
+        $input->email = $email;
+        $input->txid = $transactionId;
+        $body = Json::encode($input);
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see https://info.shapeshift.io/#api-9
+     *
+     * @param float $amount
+     * @param string $withdrawalAddress
+     * @param string $coin1
+     * @param string $coin2
+     * @param string|null $returnAddress
+     * @param string|null $rsAddress
+     * @param string|null $destinationTag
+     * @param string|null $apiKey
+     */
+    public function createFixedAmountTransaction(
+        float $amount,
+        string $withdrawalAddress,
+        string $coin1,
+        string $coin2,
+        string $returnAddress = null,
+        string $rsAddress = null,
+        string $destinationTag = null,
+        string $apiKey = null
+    ) {
+        $input = $this->buildSubmitTransactionBodyObject(
+            $withdrawalAddress,
+            $coin1,
+            $coin2,
+            $returnAddress,
+            $rsAddress,
+            $destinationTag,
+            $apiKey
+        );
+        $input->amount = $amount;
+        Json::encode($input);
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see https://info.shapeshift.io/#api-9
+     *
+     * @param float $amount
+     * @param string $coin1
+     * @param string $coin2
+     */
+    public function getAmountForTransaction(float $amount, string $coin1, string $coin2)
+    {
+        $input = $this->buildSubmitTransactionBodyObject(null, $coin1, $coin2);
+        $input->amount = $amount;
+        Json::encode($input);
+
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @see ěhttps://info.shapeshift.io/#api-108
+     *
+     * @param string $address
+     */
+    public function cancelTransaction(string $address) : void
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
      * @see https://info.shapeshift.io/#api-107
      *
      * @param string $address
@@ -180,17 +294,28 @@ class Client
         try {
             $response = $this->guzzleClient->get($url, $options);
         } catch (RequestException $exception) {
-            throw new RequestFailedException(
-                sprintf('Request failed due: "%s".', $exception->getMessage()),
-                $exception->getCode(),
-                $exception
-            );
+            $this->handleGuzzleRequestException($exception);
         }
 
-        $result = Json::decode($response->getBody()->getContents());
-        $this->checkErrors($result, $url);
+        return $this->processResult($url, $response);
+    }
 
-        return $result;
+    /**
+     * @param string $url
+     * @param array $options
+     * @return array|stdClass
+     * @throws ApiErrorException
+     * @throws RequestFailedException
+     */
+    private function post(string $url, array $options = [])
+    {
+        try {
+            $response = $this->guzzleClient->post($url, $options);
+        } catch (RequestException $exception) {
+            $this->handleGuzzleRequestException($exception);
+        }
+
+        return $this->processResult($url, $response);
     }
 
     /**
@@ -245,6 +370,71 @@ class Client
     private function findErrorInResult($result)
     {
         return $result instanceof stdClass && isset($result->error) ? $result->error : null;
+    }
+
+    /**
+     * @param RequestException $exception
+     * @throws RequestFailedException
+     */
+    private function handleGuzzleRequestException(RequestException $exception)
+    {
+        $message = sprintf('Request failed due: "%s".', $exception->getMessage());
+        throw new RequestFailedException($message, $exception->getCode(), $exception);
+    }
+
+    /**
+     * @param string $url
+     * @param ResponseInterface $response
+     * @return array|stdClass
+     * @throws ApiErrorException
+     */
+    private function processResult(string $url, ResponseInterface $response)
+    {
+        $result = Json::decode($response->getBody()->getContents());
+        $this->checkErrors($result, $url);
+
+        return $result;
+    }
+
+    /**
+     * @param string|null $withdrawalAddress
+     * @param string $coin1
+     * @param string $coin2
+     * @param string|null $returnAddress
+     * @param string|null $rsAddress
+     * @param string|null $destinationTag
+     * @param string|null $apiKey
+     * @return stdClass
+     */
+    private function buildSubmitTransactionBodyObject(
+        string $withdrawalAddress = null,
+        string $coin1,
+        string $coin2,
+        string $returnAddress = null,
+        string $rsAddress = null,
+        string $destinationTag = null,
+        string $apiKey = null
+    ) : stdClass
+    {
+        $input = new stdClass();
+        if ($withdrawalAddress !== null) {
+            $input->withdrawal = $withdrawalAddress;
+        }
+        $input->pair = sprintf('%s_%s', $coin1, $coin2);
+        if ($returnAddress !== null) {
+            $input->returnAddress = $returnAddress;
+        }
+        if ($withdrawalAddress !== null) {
+            $input->destTag = $destinationTag;
+        }
+        if ($rsAddress !== null) {
+            $input->rsAddress = $rsAddress;
+        }
+        if ($apiKey !== null) {
+            $input->apiKey = $apiKey;
+        }
+
+        return $input;
     }
 
 }
