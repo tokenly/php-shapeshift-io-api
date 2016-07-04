@@ -4,8 +4,8 @@ namespace Achse\ShapeShiftIo;
 
 use Achse\ShapeShiftIo\ApiError\ApiErrorException;
 use Achse\ShapeShiftIo\ApiError\NoPendingTransactionException;
-use Achse\ShapeShiftIo\ApiError\NotDepositAddressException;
 use Achse\ShapeShiftIo\ApiError\NoTransactionFoundException;
+use Achse\ShapeShiftIo\ApiError\NotDepositAddressException;
 use Achse\ShapeShiftIo\ApiError\NotValidResponseFromApiException;
 use Achse\ShapeShiftIo\ApiError\TransactionNotCancelledException;
 use Achse\ShapeShiftIo\ApiError\UnknownPairException;
