@@ -262,7 +262,7 @@ class Client
     }
 
     /**
-     * @see ěhttps://info.shapeshift.io/#api-108
+     * @see https://info.shapeshift.io/#api-108
      *
      * @param string $address
      *
