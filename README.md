@@ -4,9 +4,6 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Achse/php-shapeshift-io-api/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Achse/php-shapeshift-io-api/?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Achse/php-shapeshift-io-api/badge.svg?branch=master)](https://coveralls.io/github/Achse/php-shapeshift-io-api?branch=master)
 
-# Work in progress!
-Hope be done soon :)
-
 # Installation
 ```
 composer require achse/php-shapeshift-io-api
@@ -20,3 +17,7 @@ $client = new Client();
 
 $rate = $client->getRate(Coins::BITCOIN, Coins::LITECOIN);
 ```
+
+* All results are arrays and `stdClass`-es.
+* All errors from api that are caused by invalid requests (bad inputs, etc...) are `ApiErrorException`-s.
+* Network errors are `RequestFailedException`. 
