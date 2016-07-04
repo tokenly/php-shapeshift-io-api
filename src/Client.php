@@ -5,14 +5,13 @@ namespace Achse\ShapeShiftIo;
 use Achse\ShapeShiftIo\ApiError\ApiErrorException;
 use Achse\ShapeShiftIo\ApiError\NoPendingTransactionException;
 use Achse\ShapeShiftIo\ApiError\NotDepositAddressException;
+use Achse\ShapeShiftIo\ApiError\NoTransactionFoundException;
 use Achse\ShapeShiftIo\ApiError\NotValidResponseFromApiException;
 use Achse\ShapeShiftIo\ApiError\TransactionNotCancelledException;
 use Achse\ShapeShiftIo\ApiError\UnknownPairException;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Request;
 use LogicException;
-use Nette\NotImplementedException;
 use Nette\SmartObject;
 use Nette\Utils\Json;
 use Nette\Utils\Strings;
@@ -200,17 +199,16 @@ class Client
         string $destinationTag = null,
         string $apiKey = null
     ) {
-        $input = $this->buildSubmitTransactionBodyObject(
-            $withdrawalAddress,
-            $coin1,
-            $coin2,
-            $returnAddress,
-            $rsAddress,
-            $destinationTag,
-            $apiKey
-        );
+        $input = [
+            'withdrawal' => $withdrawalAddress,
+            'pair' => Strings::lower(sprintf('%s_%s', $coin1, $coin2)),
+            'returnAddress' => $returnAddress,
+            'destTag' => $destinationTag,
+            'rsAddress' => $rsAddress,
+            'apiKey' => $apiKey,
+        ];
 
-        return $this->post(Resources::CREATE_TRANSACTION, Json::encode($input));
+        return $this->post(Resources::CREATE_TRANSACTION, $input);
     }
 
     /**
@@ -224,11 +222,7 @@ class Client
      */
     public function requestEmailReceipt(string $email, string $transactionId) : void
     {
-        $input = new stdClass();
-        $input->email = $email;
-        $input->txid = $transactionId;
-
-        $this->post(Resources::REQUEST_RECEIPT, Json::encode($input));
+        $this->post(Resources::REQUEST_RECEIPT, ['email' => $email, 'txid' => $transactionId]);
     }
 
     /**
@@ -257,43 +251,22 @@ class Client
         string $destinationTag = null,
         string $apiKey = null
     ) {
-        $input = $this->buildSubmitTransactionBodyObject(
-            $withdrawalAddress,
-            $coin1,
-            $coin2,
-            $returnAddress,
-            $rsAddress,
-            $destinationTag,
-            $apiKey
-        );
-        $input->amount = $amount;
-
-        $result = $this->post(Resources::SEND_AMOUNT, Json::encode($input));
+        $input = [
+            'withdrawal' => $withdrawalAddress,
+            'pair' => Strings::lower(sprintf('%s_%s', $coin1, $coin2)),
+            'returnAddress' => $returnAddress,
+            'destTag' => $destinationTag,
+            'rsAddress' => $rsAddress,
+            'apiKey' => $apiKey,
+            'amount' => $amount,
+        ];
+        $result = $this->post(Resources::SEND_AMOUNT, $input);
 
         if (!isset($result->success)) {
             throw new NotValidResponseFromApiException('API responded with invalid structure.');
         }
 
         return $result->success;
-    }
-
-    /**
-     * @see https://info.shapeshift.io/#api-9
-     *
-     * @param float $amount
-     * @param string $coin1
-     * @param string $coin2
-     *
-     * @throws RequestFailedException
-     * @throws ApiErrorException
-     */
-    public function getAmountForTransaction(float $amount, string $coin1, string $coin2)
-    {
-        $input = $this->buildSubmitTransactionBodyObject(null, $coin1, $coin2);
-        $input->amount = $amount;
-        Json::encode($input);
-
-        throw new NotImplementedException();
     }
 
     /**
@@ -306,11 +279,8 @@ class Client
      */
     public function cancelTransaction(string $address) : void
     {
-        $input = new stdClass();
-        $input->address = $address;
-
         try {
-            $result = $this->post(Resources::CANCEL_PENDING_TRANSACTION, Json::encode($input));
+            $result = $this->post(Resources::CANCEL_PENDING_TRANSACTION, ['address' => $address]);
         } catch (ApiErrorException $e) {
             throw new TransactionNotCancelledException($e->getMessage(), $e->getCode(), $e);
         }
@@ -362,17 +332,14 @@ class Client
 
     /**
      * @param string $url
-     * @param string $body
+     * @param array $formParams
      * @return array|stdClass
-     *
      * @throws RequestFailedException
-     * @throws ApiErrorException
      */
-    private function post(string $url, $body)
+    private function post(string $url, array $formParams)
     {
         try {
-            $request = new Request('POST', $url, [], $body);
-            $response = $this->guzzleClient->send($request);
+            $response = $this->guzzleClient->request('POST', $url, ['form_params' => $formParams]);
         } catch (RequestException $exception) {
             $this->handleGuzzleRequestException($exception);
         }
@@ -398,6 +365,9 @@ class Client
 
             } elseif ($error === 'Unable to find pending transaction') {
                 throw new NoPendingTransactionException($error);
+
+            } elseif ($error === 'No transaction found.') {
+                throw new NoTransactionFoundException($error);
 
             } elseif (!$this->isEndpointOkWithError($url)) {
                 throw new ApiErrorException($error);
@@ -478,9 +448,9 @@ class Client
      * @param string|null $rsAddress
      * @param string|null $destinationTag
      * @param string|null $apiKey
-     * @return stdClass
+     * @return array
      */
-    private function buildSubmitTransactionBodyObject(
+    private function buildSubmitTransactionBody(
         string $withdrawalAddress = null,
         string $coin1,
         string $coin2,
@@ -488,25 +458,10 @@ class Client
         string $rsAddress = null,
         string $destinationTag = null,
         string $apiKey = null
-    ) : stdClass
+    ) : array
     {
-        $input = new stdClass();
-        if ($withdrawalAddress !== null) {
-            $input->withdrawal = $withdrawalAddress;
-        }
-        $input->pair = sprintf('%s_%s', $coin1, $coin2);
-        if ($returnAddress !== null) {
-            $input->returnAddress = $returnAddress;
-        }
-        if ($destinationTag !== null) {
-            $input->destTag = $destinationTag;
-        }
-        if ($rsAddress !== null) {
-            $input->rsAddress = $rsAddress;
-        }
-        if ($apiKey !== null) {
-            $input->apiKey = $apiKey;
-        }
+        $input = [];
+
 
         return $input;
     }

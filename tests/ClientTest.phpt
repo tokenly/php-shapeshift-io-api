@@ -139,54 +139,57 @@ class ClientTest extends TestCase
         }
     }
 
-//    public function testCreateTransaction()
-//    {
-//        $result = (new Client())->createTransaction(
-//            '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
-//            Coins::BITCOIN,
-//            Coins::ETHEREUM,
-//            '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
-//        );
-//
-//        var_dump($result);
-//
-//        Assert::true(isset($result->deposit));
-//        Assert::true(isset($result->depositType));
-//        Assert::true(isset($result->withdrawal));
-//        Assert::true(isset($result->withdrawalType));
-//        Assert::true(isset($result->public));
-//        Assert::true(isset($result->xrpDestTag));
-//        Assert::true(isset($result->apiPubKe));
-//    }
+    public function testCreateTransaction()
+    {
+        $result = (new Client())->createTransaction(
+            '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
+            Coins::BITCOIN,
+            Coins::ETHEREUM,
+            '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
+        );
 
-//    public function testRequestEmailReceipt()
-//    {
-//        (new Client())->requestEmailReceipt('rainhard@tester.com', '123BC');   
-//    }
+        Assert::true(is_string($result->orderId));
+        Assert::true(is_string($result->deposit));
+        Assert::equal(Coins::BITCOIN, $result->depositType);
+        Assert::equal('0x123f681646d4a755815f9cb19e1acc8565a0c2ac', $result->withdrawal);
+        Assert::equal(Coins::ETHEREUM, $result->withdrawalType);
+        Assert::equal(null, $result->public);
+        Assert::equal('1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ', $result->returnAddress);
+        Assert::equal(Coins::BITCOIN, $result->returnAddressType);
+    }
 
-//    public function testCreateFixedAmountTransaction()
-//    {
-//        $result = (new Client())->createFixedAmountTransaction(
-//            0.5,
-//            '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
-//            Coins::BITCOIN,
-//            Coins::ETHEREUM,
-//            '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
-//        );
-//
-//        var_dump($result);
-//
-//        Assert::true(isset($result->pair));
-//        Assert::true(isset($result->withdrawal));
-//        Assert::true(isset($result->withdrawalAmount));
-//        Assert::true(isset($result->deposit));
-//        Assert::true(isset($result->depositAmount));
-//        Assert::true(isset($result->expiration));
-//        Assert::true(isset($result->quotedRate));
-//        Assert::true(isset($result->apiPubKey)); 
-//    }
+    /**
+     * @throws \Achse\ShapeShiftIo\ApiError\NoTransactionFoundException
+     */
+    public function testRequestEmailReceipt()
+    {
+        (new Client())->requestEmailReceipt('rainhard@tester.com', '123BC');
+    }
 
-
+    public function testCreateFixedAmountTransaction()
+    {
+        $result = (new Client())->createFixedAmountTransaction(
+            0.5,
+            '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
+            Coins::BITCOIN,
+            Coins::ETHEREUM,
+            '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
+        );
+        
+        Assert::true(is_string($result->orderId));
+        Assert::equal('btc_eth', $result->pair);
+        Assert::equal('0x123f681646d4a755815f9cb19e1acc8565a0c2ac', $result->withdrawal);
+        Assert::equal('0.5', $result->withdrawalAmount);
+        Assert::true(is_string($result->deposit));
+        Assert::true(is_numeric($result->depositAmount));
+        Assert::true(is_numeric($result->expiration));
+        Assert::true(is_numeric($result->quotedRate));
+        Assert::true(is_numeric($result->maxLimit));
+        Assert::equal('1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ', $result->returnAddress);
+        Assert::equal('shapeshift', $result->apiPubKey);
+        Assert::true(is_numeric($result->minerFee));
+    }
+    
     /**
      * @throws \Achse\ShapeShiftIo\ApiError\TransactionNotCancelledException
      */
