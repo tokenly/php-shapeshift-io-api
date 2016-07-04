@@ -3,19 +3,11 @@
 namespace Achse\ShapeShiftIo;
 
 use Achse\ShapeShiftIo\ApiError\ApiErrorException;
-use Achse\ShapeShiftIo\ApiError\NoPendingTransactionException;
-use Achse\ShapeShiftIo\ApiError\NoTransactionFoundException;
-use Achse\ShapeShiftIo\ApiError\NotDepositAddressException;
 use Achse\ShapeShiftIo\ApiError\NotValidResponseFromApiException;
 use Achse\ShapeShiftIo\ApiError\TransactionNotCancelledException;
-use Achse\ShapeShiftIo\ApiError\UnknownPairException;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
-use LogicException;
 use Nette\SmartObject;
-use Nette\Utils\Json;
-use Nette\Utils\Strings;
-use Psr\Http\Message\ResponseInterface;
 use stdClass;
 
 class Client
@@ -56,7 +48,7 @@ class Client
      */
     public function getRate(string $coin1, string $coin2) : float
     {
-        return (float)$this->get(sprintf('%s/%s', Resources::RATE, $this->getPair($coin1, $coin2)))->rate;
+        return (float)$this->get(sprintf('%s/%s', Resources::RATE, Tools::buildPair($coin1, $coin2)))->rate;
     }
 
     /**
@@ -71,7 +63,7 @@ class Client
      */
     public function getLimit(string $coin1, string $coin2) : float
     {
-        return (float)$this->get(sprintf('%s/%s', Resources::LIMIT, $this->getPair($coin1, $coin2)))->limit;
+        return (float)$this->get(sprintf('%s/%s', Resources::LIMIT, Tools::buildPair($coin1, $coin2)))->limit;
     }
 
     /**
@@ -86,7 +78,7 @@ class Client
      */
     public function getMarketInfo(string $coin1 = null, string $coin2 = null) : array
     {
-        return $this->get(sprintf('%s/%s', Resources::MARKET_INFO, $this->getPair($coin1, $coin2)));
+        return $this->get(sprintf('%s/%s', Resources::MARKET_INFO, Tools::buildPair($coin1, $coin2)));
     }
 
     /**
@@ -201,7 +193,7 @@ class Client
     ) {
         $input = [
             'withdrawal' => $withdrawalAddress,
-            'pair' => Strings::lower(sprintf('%s_%s', $coin1, $coin2)),
+            'pair' => Tools::buildPair($coin1, $coin2, Tools::LOWERCASE),
             'returnAddress' => $returnAddress,
             'destTag' => $destinationTag,
             'rsAddress' => $rsAddress,
@@ -253,7 +245,7 @@ class Client
     ) {
         $input = [
             'withdrawal' => $withdrawalAddress,
-            'pair' => Strings::lower(sprintf('%s_%s', $coin1, $coin2)),
+            'pair' => Tools::buildPair($coin1, $coin2, Tools::LOWERCASE),
             'returnAddress' => $returnAddress,
             'destTag' => $destinationTag,
             'rsAddress' => $rsAddress,
@@ -324,10 +316,10 @@ class Client
         try {
             $response = $this->guzzleClient->get($url);
         } catch (RequestException $exception) {
-            $this->handleGuzzleRequestException($exception);
+            ResultProcessor::handleGuzzleRequestException($exception);
         }
 
-        return $this->processResult($url, $response);
+        return ResultProcessor::processResult($url, $response);
     }
 
     /**
@@ -341,103 +333,10 @@ class Client
         try {
             $response = $this->guzzleClient->request('POST', $url, ['form_params' => $formParams]);
         } catch (RequestException $exception) {
-            $this->handleGuzzleRequestException($exception);
+            ResultProcessor::handleGuzzleRequestException($exception);
         }
 
-        return $this->processResult($url, $response);
-    }
-
-    /**
-     * @param array|stdClass $result
-     * @param string $url
-     * @throws ApiErrorException
-     */
-    private function checkErrors($result, string $url)
-    {
-        $error = $this->findErrorInResult($result);
-
-        if ($error !== null) {
-            if ($error === 'Unknown pair') {
-                throw new UnknownPairException('Coin identifiers pair unknown.');
-
-            } elseif ($error === 'This address is NOT a ShapeShift deposit address. Do not send anything to it.') {
-                throw new NotDepositAddressException($error);
-
-            } elseif ($error === 'Unable to find pending transaction') {
-                throw new NoPendingTransactionException($error);
-
-            } elseif ($error === 'No transaction found.') {
-                throw new NoTransactionFoundException($error);
-
-            } elseif (!$this->isEndpointOkWithError($url)) {
-                throw new ApiErrorException($error);
-            }
-        }
-    }
-
-    /**
-     * @param string|null $coin1
-     * @param string|null $coin2
-     * @return string
-     */
-    private function getPair(string $coin1 = null, string $coin2 = null) : string
-    {
-        if (($coin1 === null || $coin2 === null) && $coin1 !== $coin2) {
-            throw new LogicException('You must provide both or none of the coins.');
-        }
-
-        return $coin1 !== null ? sprintf('%s_%s', $coin1, $coin2) : '';
-    }
-
-    /**
-     * ShapeShift API does NOT provide 400 status code on error and for some endpoints
-     * can be $result->error success response.
-     *
-     * @param string $url
-     * @return bool
-     */
-    private function isEndpointOkWithError(string $url) : bool
-    {
-        return Strings::startsWith($url, Resources::VALIDATE_ADDRESS);
-    }
-
-    /**
-     * @param stdClass|array $result
-     * @return string|stdClass|null
-     */
-    private function findErrorInResult($result)
-    {
-        $error = null;
-        if ($result instanceof stdClass) {
-            $error = $result->error ?? $result->err ?? null;
-        }
-
-        return $error;
-    }
-
-    /**
-     * @param RequestException $exception
-     * @throws RequestFailedException
-     */
-    private function handleGuzzleRequestException(RequestException $exception)
-    {
-        $message = sprintf('Request failed due: "%s".', $exception->getMessage());
-        throw new RequestFailedException($message, $exception->getCode(), $exception);
-    }
-
-    /**
-     * @param string $url
-     * @param ResponseInterface $response
-     * @return array|stdClass
-     *
-     * @throws ApiErrorException
-     */
-    private function processResult(string $url, ResponseInterface $response)
-    {
-        $result = Json::decode($response->getBody()->getContents());
-        $this->checkErrors($result, $url);
-
-        return $result;
+        return ResultProcessor::processResult($url, $response);
     }
 
 }
