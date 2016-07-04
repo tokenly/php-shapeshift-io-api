@@ -440,30 +440,4 @@ class Client
         return $result;
     }
 
-    /**
-     * @param string|null $withdrawalAddress
-     * @param string $coin1
-     * @param string $coin2
-     * @param string|null $returnAddress
-     * @param string|null $rsAddress
-     * @param string|null $destinationTag
-     * @param string|null $apiKey
-     * @return array
-     */
-    private function buildSubmitTransactionBody(
-        string $withdrawalAddress = null,
-        string $coin1,
-        string $coin2,
-        string $returnAddress = null,
-        string $rsAddress = null,
-        string $destinationTag = null,
-        string $apiKey = null
-    ) : array
-    {
-        $input = [];
-
-
-        return $input;
-    }
-
 }
