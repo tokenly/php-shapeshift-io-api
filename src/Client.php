@@ -5,9 +5,12 @@ namespace Achse\ShapeShiftIo;
 use Achse\ShapeShiftIo\ApiError\ApiErrorException;
 use Achse\ShapeShiftIo\ApiError\NoPendingTransactionException;
 use Achse\ShapeShiftIo\ApiError\NotDepositAddressException;
+use Achse\ShapeShiftIo\ApiError\NotValidResponseFromApiException;
+use Achse\ShapeShiftIo\ApiError\TransactionNotCancelledException;
 use Achse\ShapeShiftIo\ApiError\UnknownPairException;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Request;
 use LogicException;
 use Nette\NotImplementedException;
 use Nette\SmartObject;
@@ -48,6 +51,7 @@ class Client
      * @param string $coin1
      * @param string $coin2
      * @return float
+     *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
@@ -62,6 +66,7 @@ class Client
      * @param string $coin1
      * @param string $coin2
      * @return float
+     *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
@@ -76,6 +81,9 @@ class Client
      * @param string|null $coin1
      * @param string|null $coin2
      * @return stdClass[]
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function getMarketInfo(string $coin1 = null, string $coin2 = null) : array
     {
@@ -87,6 +95,7 @@ class Client
      *
      * @param int $max
      * @return stdClass[]
+     *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
@@ -100,6 +109,7 @@ class Client
      *
      * @param string $address
      * @return stdClass
+     *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
@@ -113,6 +123,7 @@ class Client
      *
      * @param string $address
      * @return int
+     *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
@@ -125,6 +136,9 @@ class Client
      * @see https://info.shapeshift.io/api#api-104
      *
      * @return stdClass
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function getSupportedCoins() : stdClass
     {
@@ -136,6 +150,9 @@ class Client
      *
      * @param string $apiKey
      * @return stdClass[]
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function getListAOfTransactionsByApiKey(string $apiKey) : array
     {
@@ -148,6 +165,9 @@ class Client
      * @param string $address
      * @param string $apiKey
      * @return stdClass[]
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function getTransactionsByOutputAddress(string $address, string $apiKey) : array
     {
@@ -166,6 +186,10 @@ class Client
      * @param string|null $destinationTag
      * @param string|null $rsAddress
      * @param string|null $apiKey
+     * @return array|stdClass
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function createTransaction(
         string $withdrawalAddress,
@@ -185,9 +209,8 @@ class Client
             $destinationTag,
             $apiKey
         );
-        Json::encode($input);
 
-        throw new NotImplementedException();
+        return $this->post(Resources::CREATE_TRANSACTION, Json::encode($input));
     }
 
     /**
@@ -195,15 +218,17 @@ class Client
      *
      * @param string $email
      * @param string $transactionId
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function requestEmailReceipt(string $email, string $transactionId) : void
     {
         $input = new stdClass();
         $input->email = $email;
         $input->txid = $transactionId;
-        $body = Json::encode($input);
 
-        throw new NotImplementedException();
+        $this->post(Resources::REQUEST_RECEIPT, Json::encode($input));
     }
 
     /**
@@ -217,6 +242,10 @@ class Client
      * @param string|null $rsAddress
      * @param string|null $destinationTag
      * @param string|null $apiKey
+     * @return array|stdClass
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function createFixedAmountTransaction(
         float $amount,
@@ -238,9 +267,14 @@ class Client
             $apiKey
         );
         $input->amount = $amount;
-        Json::encode($input);
 
-        throw new NotImplementedException();
+        $result = $this->post(Resources::SEND_AMOUNT, Json::encode($input));
+
+        if (!isset($result->success)) {
+            throw new NotValidResponseFromApiException('API responded with invalid structure.');
+        }
+
+        return $result->success;
     }
 
     /**
@@ -249,6 +283,9 @@ class Client
      * @param float $amount
      * @param string $coin1
      * @param string $coin2
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function getAmountForTransaction(float $amount, string $coin1, string $coin2)
     {
@@ -263,10 +300,24 @@ class Client
      * @see ěhttps://info.shapeshift.io/#api-108
      *
      * @param string $address
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function cancelTransaction(string $address) : void
     {
-        throw new NotImplementedException();
+        $input = new stdClass();
+        $input->address = $address;
+
+        try {
+            $result = $this->post(Resources::CANCEL_PENDING_TRANSACTION, Json::encode($input));
+        } catch (ApiErrorException $e) {
+            throw new TransactionNotCancelledException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        if (!isset($result->success) || $result->success !== ' Pending Transaction cancelled ') {
+            throw new ApiErrorException('Canceling transaction failed.');
+        }
     }
 
     /**
@@ -275,6 +326,9 @@ class Client
      * @param string $address
      * @param string $coin
      * @return stdClass
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
      */
     public function validateAddress(string $address, string $coin) : stdClass
     {
@@ -290,15 +344,15 @@ class Client
 
     /**
      * @param string $url
-     * @param array $options
      * @return stdClass|array
+     *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
-    private function get(string $url, array $options = [])
+    private function get(string $url)
     {
         try {
-            $response = $this->guzzleClient->get($url, $options);
+            $response = $this->guzzleClient->get($url);
         } catch (RequestException $exception) {
             $this->handleGuzzleRequestException($exception);
         }
@@ -308,15 +362,17 @@ class Client
 
     /**
      * @param string $url
-     * @param array $options
+     * @param string $body
      * @return array|stdClass
-     * @throws ApiErrorException
+     *
      * @throws RequestFailedException
+     * @throws ApiErrorException
      */
-    private function post(string $url, array $options = [])
+    private function post(string $url, $body)
     {
         try {
-            $response = $this->guzzleClient->post($url, $options);
+            $request = new Request('POST', $url, [], $body);
+            $response = $this->guzzleClient->send($request);
         } catch (RequestException $exception) {
             $this->handleGuzzleRequestException($exception);
         }
@@ -381,7 +437,12 @@ class Client
      */
     private function findErrorInResult($result)
     {
-        return $result instanceof stdClass && isset($result->error) ? $result->error : null;
+        $error = null;
+        if ($result instanceof stdClass) {
+            $error = $result->error ?? $result->err ?? null;
+        }
+
+        return $error;
     }
 
     /**
@@ -398,6 +459,7 @@ class Client
      * @param string $url
      * @param ResponseInterface $response
      * @return array|stdClass
+     *
      * @throws ApiErrorException
      */
     private function processResult(string $url, ResponseInterface $response)
@@ -436,7 +498,7 @@ class Client
         if ($returnAddress !== null) {
             $input->returnAddress = $returnAddress;
         }
-        if ($withdrawalAddress !== null) {
+        if ($destinationTag !== null) {
             $input->destTag = $destinationTag;
         }
         if ($rsAddress !== null) {

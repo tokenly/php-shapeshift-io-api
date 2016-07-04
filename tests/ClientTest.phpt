@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @testCase
+ */
+
 namespace Achse\ShapeShiftIo\Tests;
 
 require_once __DIR__ . '/bootstrap.php';
@@ -17,7 +21,7 @@ class ClientTest extends TestCase
 
     use SmartObject;
 
-    const DUMMY_ADDRESS = '0x1234'; // Todo: create some dummy transaction
+    const DUMMY_ADDRESS = '0x1234';
 
     public function testRate()
     {
@@ -133,6 +137,62 @@ class ClientTest extends TestCase
         if (!$expectedValid) {
             Assert::equal($expectedErrorMessage, $result->error);
         }
+    }
+
+//    public function testCreateTransaction()
+//    {
+//        $result = (new Client())->createTransaction(
+//            '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
+//            Coins::BITCOIN,
+//            Coins::ETHEREUM,
+//            '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
+//        );
+//
+//        var_dump($result);
+//
+//        Assert::true(isset($result->deposit));
+//        Assert::true(isset($result->depositType));
+//        Assert::true(isset($result->withdrawal));
+//        Assert::true(isset($result->withdrawalType));
+//        Assert::true(isset($result->public));
+//        Assert::true(isset($result->xrpDestTag));
+//        Assert::true(isset($result->apiPubKe));
+//    }
+
+//    public function testRequestEmailReceipt()
+//    {
+//        (new Client())->requestEmailReceipt('rainhard@tester.com', '123BC');   
+//    }
+
+//    public function testCreateFixedAmountTransaction()
+//    {
+//        $result = (new Client())->createFixedAmountTransaction(
+//            0.5,
+//            '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
+//            Coins::BITCOIN,
+//            Coins::ETHEREUM,
+//            '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
+//        );
+//
+//        var_dump($result);
+//
+//        Assert::true(isset($result->pair));
+//        Assert::true(isset($result->withdrawal));
+//        Assert::true(isset($result->withdrawalAmount));
+//        Assert::true(isset($result->deposit));
+//        Assert::true(isset($result->depositAmount));
+//        Assert::true(isset($result->expiration));
+//        Assert::true(isset($result->quotedRate));
+//        Assert::true(isset($result->apiPubKey)); 
+//    }
+
+
+    /**
+     * @throws \Achse\ShapeShiftIo\ApiError\TransactionNotCancelledException
+     */
+    public function testCancelTransaction()
+    {
+        (new Client())->cancelTransaction('1HB5XMLmzFVj8ALj6mfBsbifRoD4miY36v');
     }
 
     /**
