@@ -27,7 +27,7 @@ class ClientTest extends TestCase
 
     public function testRate()
     {
-        $rate = (new Client())->getRate(Coins::BITCOIN, Coins::LITECOIN);
+        $rate = (new Client())->getRate('BTC', 'LTC');
         MyAssert::floatAsStringPositive($rate);
     }
 
@@ -41,7 +41,7 @@ class ClientTest extends TestCase
 
     public function testLimit()
     {
-        $limit = (new Client())->getLimit(Coins::BITCOIN, Coins::LITECOIN);
+        $limit = (new Client())->getLimit('BTC', 'LTC');
         MyAssert::floatAsStringPositive($limit);
     }
 
@@ -50,7 +50,7 @@ class ClientTest extends TestCase
         $marketInfo = (new Client())->getMarketInfo();
         Assert::true(count($marketInfo) > 0, 'There should be some data');
 
-        $pair = sprintf('%s_%s', Coins::BITCOIN, Coins::ETHEREUM);
+        $pair = sprintf('%s_%s', 'BTC', 'ETH');
         $coinItems = array_filter(
             $marketInfo,
             function (stdClass $coinItem) use ($pair) : bool {
@@ -104,8 +104,8 @@ class ClientTest extends TestCase
     {
         $supportedCoins = (new Client())->getSupportedCoins();
 
-        Assert::equal('Bitcoin', $supportedCoins->{Coins::BITCOIN}->name);
-        Assert::equal(Coins::ETHEREUM, $supportedCoins->{Coins::ETHEREUM}->symbol);
+        Assert::equal('Bitcoin', $supportedCoins->BTC->name);
+        Assert::equal('ETH', $supportedCoins->ETH->symbol);
     }
 
     public function testGetListAOfTransactionsByApiKey()
@@ -145,19 +145,19 @@ class ClientTest extends TestCase
     {
         $result = (new Client())->createTransaction(
             '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
-            Coins::BITCOIN,
-            Coins::ETHEREUM,
+            'BTC',
+            'ETH',
             '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
         );
 
         Assert::true(is_string($result->orderId));
         Assert::true(is_string($result->deposit));
-        Assert::equal(Coins::BITCOIN, $result->depositType);
+        Assert::equal('BTC', $result->depositType);
         Assert::equal('0x123f681646d4a755815f9cb19e1acc8565a0c2ac', $result->withdrawal);
-        Assert::equal(Coins::ETHEREUM, $result->withdrawalType);
+        Assert::equal('ETH', $result->withdrawalType);
         Assert::equal(null, $result->public);
         Assert::equal('1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ', $result->returnAddress);
-        Assert::equal(Coins::BITCOIN, $result->returnAddressType);
+        Assert::equal('BTC', $result->returnAddressType);
     }
 
     /**
@@ -173,8 +173,8 @@ class ClientTest extends TestCase
         $result = (new Client())->createFixedAmountTransaction(
             '0.5',
             '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
-            Coins::BITCOIN,
-            Coins::ETHEREUM,
+            'BTC',
+            'ETH',
             '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
         );
 
@@ -206,9 +206,9 @@ class ClientTest extends TestCase
     public function getDataForValidateAddress()
     {
         return [
-            [false, 'Invalid address.', self::DUMMY_ADDRESS, Coins::LITECOIN],
-            [true, '', '0x123f681646d4a755815f9cb19e1acc8565a0c2ac', Coins::ETHEREUM],
-            [true, '', '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ', Coins::BITCOIN],
+            [false, 'Invalid address.', self::DUMMY_ADDRESS, 'LTC'],
+            [true, '', '0x123f681646d4a755815f9cb19e1acc8565a0c2ac', 'ETH'],
+            [true, '', '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ', 'BTC'],
         ];
     }
 

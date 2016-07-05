@@ -22,6 +22,8 @@ $rate = $client->getRate(Coins::BITCOIN, Coins::LITECOIN);
 * All errors from api that are caused by invalid requests (bad inputs, etc...) are `ApiErrorException`-s.
 * Network errors are `RequestFailedException`. 
 
+You can find some examples of usage in `tests/ClientTest.phpt`.
+
 # Money vs. floats
 All rate and amount numbers that came from shapeshift.io are represented 
 in string float format, this library keeps it that way. 
