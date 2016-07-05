@@ -1,7 +1,8 @@
 <?php
 
-namespace Achse\ShapeShiftIo;
+declare(strict_types = 1);
 
+namespace Achse\ShapeShiftIo;
 
 interface Coins
 {
@@ -9,5 +10,5 @@ interface Coins
     const BITCOIN = 'BTC';
     const LITECOIN = 'LTC';
     const ETHEREUM = 'ETH';
-    
+
 }

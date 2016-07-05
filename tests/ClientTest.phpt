@@ -4,6 +4,8 @@
  * @testCase
  */
 
+declare(strict_types = 1);
+
 namespace Achse\ShapeShiftIo\Tests;
 
 require_once __DIR__ . '/bootstrap.php';
@@ -175,7 +177,7 @@ class ClientTest extends TestCase
             Coins::ETHEREUM,
             '1HLjjjSPzHLNn5GTvDNSGnhBqHEF7nZxNZ'
         );
-        
+
         Assert::true(is_string($result->orderId));
         Assert::equal('btc_eth', $result->pair);
         Assert::equal('0x123f681646d4a755815f9cb19e1acc8565a0c2ac', $result->withdrawal);
@@ -189,7 +191,7 @@ class ClientTest extends TestCase
         Assert::equal('shapeshift', $result->apiPubKey);
         Assert::true(is_numeric($result->minerFee));
     }
-    
+
     /**
      * @throws \Achse\ShapeShiftIo\ApiError\TransactionNotCancelledException
      */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Achse\ShapeShiftIo\Test;
 
 require __DIR__ . '/../vendor/autoload.php';
