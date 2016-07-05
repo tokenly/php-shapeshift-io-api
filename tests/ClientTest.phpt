@@ -48,7 +48,6 @@ class ClientTest extends TestCase
     public function testMarketAll()
     {
         $marketInfo = (new Client())->getMarketInfo();
-        var_dump($marketInfo);
         Assert::true(count($marketInfo) > 0, 'There should be some data');
 
         $pair = sprintf('%s_%s', Coins::BITCOIN, Coins::ETHEREUM);
