@@ -21,3 +21,13 @@ $rate = $client->getRate(Coins::BITCOIN, Coins::LITECOIN);
 * All results are arrays and `stdClass`-es.
 * All errors from api that are caused by invalid requests (bad inputs, etc...) are `ApiErrorException`-s.
 * Network errors are `RequestFailedException`. 
+
+# Money vs. floats
+> **Important:** NEVER represent money as float!
+
+All rate and amount numbers that came from shapeshift.io are represented as strings,
+this library keeps it that way. In your project I highly recommend to convert it to something like:
+https://github.com/moneyphp/money and work with this.
+
+However, some values like `limit` and some others came as floats from API. This library
+converts it to strings for mainly consistency reasons.

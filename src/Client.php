@@ -43,14 +43,14 @@ class Client
      *
      * @param string $coin1
      * @param string $coin2
-     * @return float
+     * @return string
      *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
-    public function getRate(string $coin1, string $coin2) : float
+    public function getRate(string $coin1, string $coin2) : string
     {
-        return (float)$this->get(sprintf('%s/%s', Resources::RATE, Tools::buildPair($coin1, $coin2)))->rate;
+        return $this->get(sprintf('%s/%s', Resources::RATE, Tools::buildPair($coin1, $coin2)))->rate;
     }
 
     /**
@@ -58,14 +58,14 @@ class Client
      *
      * @param string $coin1
      * @param string $coin2
-     * @return float
+     * @return string
      *
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
-    public function getLimit(string $coin1, string $coin2) : float
+    public function getLimit(string $coin1, string $coin2) : string
     {
-        return (float)$this->get(sprintf('%s/%s', Resources::LIMIT, Tools::buildPair($coin1, $coin2)))->limit;
+        return $this->get(sprintf('%s/%s', Resources::LIMIT, Tools::buildPair($coin1, $coin2)))->limit;
     }
 
     /**
@@ -222,7 +222,7 @@ class Client
     /**
      * @see https://info.shapeshift.io/#api-9
      *
-     * @param float $amount
+     * @param string $amount
      * @param string $withdrawalAddress
      * @param string $coin1
      * @param string $coin2
@@ -236,7 +236,7 @@ class Client
      * @throws ApiErrorException
      */
     public function createFixedAmountTransaction(
-        float $amount,
+        string $amount,
         string $withdrawalAddress,
         string $coin1,
         string $coin2,

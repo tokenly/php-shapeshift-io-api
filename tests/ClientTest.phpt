@@ -28,7 +28,7 @@ class ClientTest extends TestCase
     public function testRate()
     {
         $rate = (new Client())->getRate(Coins::BITCOIN, Coins::LITECOIN);
-        MyAssert::positiveFloat($rate);
+        MyAssert::floatAsStringPositive($rate);
     }
 
     /**
@@ -42,12 +42,13 @@ class ClientTest extends TestCase
     public function testLimit()
     {
         $limit = (new Client())->getLimit(Coins::BITCOIN, Coins::LITECOIN);
-        MyAssert::positiveFloat($limit);
+        MyAssert::floatAsStringPositive($limit);
     }
 
     public function testMarketAll()
     {
         $marketInfo = (new Client())->getMarketInfo();
+        var_dump($marketInfo);
         Assert::true(count($marketInfo) > 0, 'There should be some data');
 
         $pair = sprintf('%s_%s', Coins::BITCOIN, Coins::ETHEREUM);
@@ -59,10 +60,10 @@ class ClientTest extends TestCase
         );
         $coinItem = reset($coinItems);
         Assert::equal($pair, $coinItem->pair);
-        MyAssert::positiveFloat($coinItem->rate);
-        MyAssert::positiveFloat($coinItem->limit);
-        MyAssert::positiveFloat($coinItem->min);
-        MyAssert::positiveFloat($coinItem->minerFee);
+        MyAssert::floatAsStringPositive($coinItem->rate);
+        MyAssert::floatAsStringPositive($coinItem->limit);
+        MyAssert::floatAsStringPositive($coinItem->min);
+        MyAssert::floatAsStringPositive($coinItem->minerFee);
     }
 
     public function testRecentTransactionList()

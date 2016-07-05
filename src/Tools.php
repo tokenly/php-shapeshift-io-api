@@ -39,4 +39,15 @@ class Tools
         return $pair;
     }
 
+    /**
+     * @see http://stackoverflow.com/a/35008486
+     *
+     * @param string $inputJson
+     * @return string
+     */
+    public static function jsonNumbersToString(string $inputJson) : string
+    {
+        return Strings::replace($inputJson, "/(\"\w+\":\s*?)(\d+\.?[^,\}]*\b)/imu", '$1"$2"');
+    }
+
 }
