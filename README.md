@@ -24,12 +24,12 @@ $rate = $client->getRate(Coins::BITCOIN, Coins::LITECOIN);
 
 # Money vs. floats
 All rate and amount numbers that came from shapeshift.io are represented 
-in string float format, this library keeps it that way.
+in string float format, this library keeps it that way. 
+
+However, some values like `limit` and some others came as floats from 
+API. This library converts it to strings for mainly consistency reasons.
 
 > **Important:** NEVER represent money as float!
 
 It's recommended to work with those values with `bcmath` functions, or 
 implement some Money object as for example is: https://github.com/moneyphp/money.
-
-However, some values like `limit` and some others came as floats from API. This library
-converts it to strings for mainly consistency reasons.
