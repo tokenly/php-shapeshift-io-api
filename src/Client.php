@@ -313,13 +313,7 @@ class Client
      */
     private function get(string $url)
     {
-        try {
-            $response = $this->guzzleClient->get($url);
-        } catch (RequestException $exception) {
-            ResultProcessor::handleGuzzleRequestException($exception);
-        }
-
-        return ResultProcessor::processResult($url, $response);
+        return $this->request('GET', $url);
     }
 
     /**
@@ -330,8 +324,22 @@ class Client
      */
     private function post(string $url, array $formParams)
     {
+        return $this->request('POST', $url, ['form_params' => $formParams]);
+    }
+
+    /**
+     * @param string $method
+     * @param string $url
+     * @param array $options
+     * @return array|stdClass
+     *
+     * @throws RequestFailedException
+     * @throws ApiErrorException
+     */
+    private function request(string $method, string $url, array $options = [])
+    {
         try {
-            $response = $this->guzzleClient->request('POST', $url, ['form_params' => $formParams]);
+            $response = $this->guzzleClient->request($method, $url, $options);
         } catch (RequestException $exception) {
             ResultProcessor::handleGuzzleRequestException($exception);
         }
