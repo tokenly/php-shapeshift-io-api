@@ -31,7 +31,7 @@ class ResultProcessor
     public static function processResult(string $url, ResponseInterface $response)
     {
         $body = $response->getBody()->getContents();
-//        $body = Tools::jsonNumbersToString($body);
+        $body = Tools::jsonNumbersToString($body);
         $result = Json::decode($body);
         self::checkErrors($result, $url);
 
