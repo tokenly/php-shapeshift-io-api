@@ -29,7 +29,7 @@ class ResultProcessor
     public static function processResult(string $url, ResponseInterface $response)
     {
         $result = Json::decode($response->getBody()->getContents());
-        static::checkErrors($result, $url);
+        self::checkErrors($result, $url);
 
         return $result;
     }
@@ -51,7 +51,7 @@ class ResultProcessor
      */
     private static function checkErrors($result, string $url)
     {
-        $error = static::findErrorInResult($result);
+        $error = self::findErrorInResult($result);
 
         if ($error !== null) {
             if ($error === 'Unknown pair') {
@@ -66,7 +66,7 @@ class ResultProcessor
             } elseif ($error === 'No transaction found.') {
                 throw new NoTransactionFoundException($error);
 
-            } elseif (!static::isEndpointOkWithError($url)) {
+            } elseif (!self::isEndpointOkWithError($url)) {
                 throw new ApiErrorException($error);
             }
         }
