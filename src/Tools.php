@@ -40,7 +40,7 @@ class Tools
     }
 
     /**
-     * @see http://stackoverflow.com/a/35008486
+     * @see http://stackoverflow.com/a/35009800
      *
      * @param string $inputJson
      * @return string
