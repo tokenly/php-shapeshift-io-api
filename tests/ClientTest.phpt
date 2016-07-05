@@ -171,7 +171,7 @@ class ClientTest extends TestCase
     public function testCreateFixedAmountTransaction()
     {
         $result = (new Client())->createFixedAmountTransaction(
-            0.5,
+            '0.5',
             '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
             Coins::BITCOIN,
             Coins::ETHEREUM,
