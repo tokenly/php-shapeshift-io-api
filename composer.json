@@ -21,8 +21,7 @@
         "nette/utils": "2.4.*"
     },
     "require-dev": {
-        "nette/tester": "@dev",
-        "mockery/mockery": "@dev"
+        "nette/tester": "@dev"
     },
     "autoload": {
         "psr-4": {
