@@ -17,6 +17,7 @@
     ],
     "require": {
         "php": ">= 7.0",
+        "ext-json": "*",
         "guzzlehttp/guzzle": "^6.2",
         "nette/utils": "2.4.*"
     },
