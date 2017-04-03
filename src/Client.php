@@ -78,7 +78,7 @@ class Client
      * @throws RequestFailedException
      * @throws ApiErrorException
      */
-    public function getMarketInfo(string $coin1 = null, string $coin2 = null) : array
+    public function getMarketInfo(string $coin1 = null, string $coin2 = null) : stdClass
     {
         return $this->get(sprintf('%s/%s', Resources::MARKET_INFO, Tools::buildPair($coin1, $coin2)));
     }
