@@ -1,5 +1,5 @@
 {
-    "name": "achse/php-shapeshift-io-api",
+    "name": "tokenly/php-shapeshift-io-api",
     "description": "API library for PHP for shapeshift.io service.",
     "type": "library",
     "license": "MIT",
